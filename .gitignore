@@ -1,0 +1,14 @@
+# Visual Studio / Build
+bin/
+obj/
+*.suo
+*.user
+*.userprefs
+*.sdf
+*.opensdf
+*.cache
+*.mdb
+*.pdb
+_ReSharper*/
+ipch/
+TestResults/
