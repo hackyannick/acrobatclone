@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Eigener Installations-Assistent im Stil des Acrobat-9-Setups (dunkle Grafiken mit roten Bögen).
+  Alle Dialoge sind hier vollständig beschrieben, es wird keine WixUI-Bibliothek benötigt.
+-->
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+    <Binary Id="AcBanner" SourceFile="Banner.bmp" />
+    <Binary Id="AcDialog" SourceFile="Dialog.bmp" />
+
+    <UI Id="AcroCloneUI">
+      <TextStyle Id="AcTahoma8" FaceName="Tahoma" Size="8" />
+      <TextStyle Id="AcBold8" FaceName="Tahoma" Size="8" Bold="yes" />
+      <TextStyle Id="AcWhite8" FaceName="Tahoma" Size="8" Red="230" Green="230" Blue="230" />
+      <TextStyle Id="AcTitleWhite" FaceName="Tahoma" Size="9" Bold="yes" Red="255" Green="255" Blue="255" />
+      <TextStyle Id="AcBigTitle" FaceName="Tahoma" Size="12" Bold="yes" Red="40" Green="40" Blue="40" />
+
+      <!-- ============================================================ Willkommen -->
+      <Dialog Id="WelcomeDlg" Width="370" Height="270" Title="[ProductName] – Setup">
+        <Control Id="Bitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="234" TabSkip="no" Text="AcDialog" />
+        <Control Id="Title" Type="Text" X="135" Y="20" Width="220" Height="60" Transparent="yes" NoPrefix="yes"
+                 Text="{\AcBigTitle}Willkommen beim Installations-Assistenten für [ProductName]" />
+        <Control Id="Description" Type="Text" X="135" Y="86" Width="220" Height="90" Transparent="yes" NoPrefix="yes"
+                 Text="Mit diesem Assistenten wird [ProductName] auf Ihrem Computer installiert – ein PDF-Programm zum Anzeigen, Kommentieren und Bearbeiten von PDF-Dokumenten.&#13;&#10;&#13;&#10;Klicken Sie auf „Weiter“, um fortzufahren, oder auf „Abbrechen“, um den Assistenten zu beenden." />
+        <Control Id="Version" Type="Text" X="135" Y="210" Width="220" Height="12" Transparent="yes" NoPrefix="yes"
+                 Text="Version [ProductVersion]" />
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Disabled="yes" Text="&lt; &amp;Zurück" />
+        <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Weiter &gt;">
+          <Publish Event="NewDialog" Value="LicenseDlg">1</Publish>
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Abbrechen">
+          <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+        </Control>
+      </Dialog>
+
+      <!-- ============================================================ Lizenz -->
+      <Dialog Id="LicenseDlg" Width="370" Height="270" Title="[ProductName] – Setup">
+        <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="AcBanner" />
+        <Control Id="Title" Type="Text" X="15" Y="7" Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="{\AcTitleWhite}Lizenzvereinbarung" />
+        <Control Id="Description" Type="Text" X="25" Y="24" Width="300" Height="14" Transparent="yes" NoPrefix="yes"
+                 Text="{\AcWhite8}Bitte lesen Sie die folgenden Hinweise sorgfältig durch." />
+        <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+        <Control Id="LicenseText" Type="ScrollableText" X="20" Y="56" Width="330" Height="148" Sunken="yes" TabSkip="no">
+          <Text SourceFile="License.rtf" />
+        </Control>
+        <Control Id="LicenseAcceptedCheckBox" Type="CheckBox" X="20" Y="210" Width="330" Height="18" CheckBoxValue="1"
+                 Property="LicenseAccepted" Text="Ich &amp;akzeptiere die Bedingungen der Lizenzvereinbarung" />
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&lt; &amp;Zurück">
+          <Publish Event="NewDialog" Value="WelcomeDlg">1</Publish>
+        </Control>
+        <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Weiter &gt;">
+          <Publish Event="NewDialog" Value="InstallDirDlg">LicenseAccepted = "1"</Publish>
+          <Condition Action="disable"><![CDATA[LicenseAccepted <> "1"]]></Condition>
+          <Condition Action="enable">LicenseAccepted = "1"</Condition>
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Abbrechen">
+          <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+        </Control>
+      </Dialog>
+
+      <!-- ============================================================ Zielordner und Optionen -->
+      <Dialog Id="InstallDirDlg" Width="370" Height="270" Title="[ProductName] – Setup">
+        <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="AcBanner" />
+        <Control Id="Title" Type="Text" X="15" Y="7" Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="{\AcTitleWhite}Zielordner und Optionen" />
+        <Control Id="Description" Type="Text" X="25" Y="24" Width="300" Height="14" Transparent="yes" NoPrefix="yes"
+                 Text="{\AcWhite8}Legen Sie fest, wo und wie [ProductName] installiert wird." />
+        <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+        <Control Id="FolderLabel" Type="Text" X="20" Y="60" Width="330" Height="12" NoPrefix="yes"
+                 Text="[ProductName] wird in folgendem Ordner installiert:" />
+        <Control Id="Folder" Type="PathEdit" X="20" Y="76" Width="330" Height="18" Sunken="yes" Property="INSTALLDIR" />
+        <Control Id="FolderHint" Type="Text" X="20" Y="98" Width="330" Height="12" NoPrefix="yes"
+                 Text="Sie können den Pfad direkt im Feld ändern." />
+        <Control Id="OptionsLabel" Type="Text" X="20" Y="124" Width="330" Height="12" NoPrefix="yes" Text="{\AcBold8}Optionen" />
+        <Control Id="DesktopCheckBox" Type="CheckBox" X="20" Y="140" Width="330" Height="17" CheckBoxValue="1"
+                 Property="INSTALLDESKTOPSHORTCUT" Text="Verknüpfung auf dem &amp;Desktop erstellen" />
+        <Control Id="PdfCheckBox" Type="CheckBox" X="20" Y="158" Width="330" Height="17" CheckBoxValue="1"
+                 Property="REGISTERPDF" Text="[ProductName] im Menü „Ö&amp;ffnen mit“ für PDF-Dateien anbieten" />
+        <Control Id="SpaceText" Type="Text" X="20" Y="190" Width="330" Height="24" NoPrefix="yes"
+                 Text="Benötigter Speicherplatz: ca. 20 MB. Die Einstellungen des Programms werden pro Benutzer unter %APPDATA%\AcroClone gespeichert." />
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&lt; &amp;Zurück">
+          <Publish Event="NewDialog" Value="LicenseDlg">1</Publish>
+        </Control>
+        <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Weiter &gt;">
+          <Publish Event="SetTargetPath" Value="INSTALLDIR" Order="1">1</Publish>
+          <Publish Event="NewDialog" Value="VerifyReadyDlg" Order="2">1</Publish>
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Abbrechen">
+          <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+        </Control>
+      </Dialog>
+
+      <!-- ============================================================ Bereit -->
+      <Dialog Id="VerifyReadyDlg" Width="370" Height="270" Title="[ProductName] – Setup" TrackDiskSpace="yes">
+        <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="AcBanner" />
+        <Control Id="Title" Type="Text" X="15" Y="7" Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="{\AcTitleWhite}Bereit zur Installation" />
+        <Control Id="Description" Type="Text" X="25" Y="24" Width="300" Height="14" Transparent="yes" NoPrefix="yes"
+                 Text="{\AcWhite8}Der Assistent kann jetzt mit der Installation beginnen." />
+        <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+        <Control Id="Text" Type="Text" X="25" Y="64" Width="320" Height="50" NoPrefix="yes"
+                 Text="Klicken Sie auf „Installieren“, um die Installation zu starten.&#13;&#10;&#13;&#10;Klicken Sie auf „Zurück“, um die Einstellungen zu überprüfen oder zu ändern. Klicken Sie auf „Abbrechen“, um den Assistenten zu beenden." />
+        <Control Id="FolderLabel" Type="Text" X="25" Y="124" Width="320" Height="12" NoPrefix="yes" Text="{\AcBold8}Zielordner:" />
+        <Control Id="FolderValue" Type="Text" X="25" Y="138" Width="320" Height="24" NoPrefix="yes" Text="[INSTALLDIR]" />
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&lt; &amp;Zurück">
+          <Publish Event="NewDialog" Value="InstallDirDlg">1</Publish>
+        </Control>
+        <Control Id="Install" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" ElevationShield="yes" Text="&amp;Installieren">
+          <Publish Event="SpawnDialog" Value="OutOfDiskDlg" Order="1">OutOfDiskSpace = 1</Publish>
+          <Publish Event="EndDialog" Value="Return" Order="2"><![CDATA[OutOfDiskSpace <> 1]]></Publish>
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Abbrechen">
+          <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+        </Control>
+      </Dialog>
+
+      <!-- ============================================================ Wartung (Reparieren / Entfernen) -->
+      <Dialog Id="MaintenanceDlg" Width="370" Height="270" Title="[ProductName] – Setup">
+        <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="AcBanner" />
+        <Control Id="Title" Type="Text" X="15" Y="7" Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="{\AcTitleWhite}Programmwartung" />
+        <Control Id="Description" Type="Text" X="25" Y="24" Width="300" Height="14" Transparent="yes" NoPrefix="yes"
+                 Text="{\AcWhite8}[ProductName] ist bereits installiert. Was möchten Sie tun?" />
+        <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+        <Control Id="RepairButton" Type="PushButton" X="30" Y="70" Width="80" Height="17" ElevationShield="yes" Text="&amp;Reparieren">
+          <Publish Property="REINSTALLMODE" Value="ecmus" Order="1">1</Publish>
+          <Publish Property="REINSTALL" Value="ALL" Order="2">1</Publish>
+          <Publish Event="ReinstallMode" Value="ecmus" Order="3">1</Publish>
+          <Publish Event="Reinstall" Value="ALL" Order="4">1</Publish>
+          <Publish Event="EndDialog" Value="Return" Order="5">1</Publish>
+        </Control>
+        <Control Id="RepairText" Type="Text" X="125" Y="68" Width="225" Height="30" NoPrefix="yes"
+                 Text="Fehlende oder beschädigte Dateien, Verknüpfungen und Registrierungseinträge werden wiederhergestellt." />
+        <Control Id="RemoveButton" Type="PushButton" X="30" Y="118" Width="80" Height="17" ElevationShield="yes" Text="&amp;Entfernen">
+          <Publish Property="REMOVE" Value="ALL" Order="1">1</Publish>
+          <Publish Event="Remove" Value="ALL" Order="2">1</Publish>
+          <Publish Event="EndDialog" Value="Return" Order="3">1</Publish>
+        </Control>
+        <Control Id="RemoveText" Type="Text" X="125" Y="116" Width="225" Height="30" NoPrefix="yes"
+                 Text="[ProductName] wird vom Computer entfernt. Ihre PDF-Dokumente bleiben erhalten." />
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Disabled="yes" Text="&lt; &amp;Zurück" />
+        <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Disabled="yes" Text="&amp;Weiter &gt;" />
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Abbrechen">
+          <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+        </Control>
+      </Dialog>
+
+      <!-- ============================================================ Fortschritt -->
+      <Dialog Id="ProgressDlg" Width="370" Height="270" Title="[ProductName] – Setup" Modeless="yes">
+        <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="AcBanner" />
+        <Control Id="Title" Type="Text" X="15" Y="7" Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="{\AcTitleWhite}[ProductName] wird eingerichtet" />
+        <Control Id="Description" Type="Text" X="25" Y="24" Width="300" Height="14" Transparent="yes" NoPrefix="yes"
+                 Text="{\AcWhite8}Bitte warten Sie, während der Assistent die Änderungen vornimmt." />
+        <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+        <Control Id="StatusLabel" Type="Text" X="20" Y="74" Width="50" Height="12" NoPrefix="yes" Text="Status:" />
+        <Control Id="ActionText" Type="Text" X="70" Y="74" Width="280" Height="12" NoPrefix="yes">
+          <Subscribe Event="ActionText" Attribute="Text" />
+        </Control>
+        <Control Id="ProgressBar" Type="ProgressBar" X="20" Y="92" Width="330" Height="12" ProgressBlocks="yes" Text="Fortschritt">
+          <Subscribe Event="SetProgress" Attribute="Progress" />
+        </Control>
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Disabled="yes" Text="&lt; &amp;Zurück" />
+        <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Disabled="yes" Text="&amp;Weiter &gt;" />
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Default="yes" Cancel="yes" Text="Abbrechen">
+          <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+        </Control>
+      </Dialog>
+
+      <!-- ============================================================ Fertig -->
+      <Dialog Id="ExitDlg" Width="370" Height="270" Title="[ProductName] – Setup">
+        <Control Id="Bitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="234" TabSkip="no" Text="AcDialog" />
+        <Control Id="Title" Type="Text" X="135" Y="20" Width="220" Height="60" Transparent="yes" NoPrefix="yes"
+                 Text="{\AcBigTitle}Der Installations-Assistent wurde abgeschlossen" />
+        <Control Id="Description" Type="Text" X="135" Y="86" Width="220" Height="60" Transparent="yes" NoPrefix="yes"
+                 Text="Die gewünschten Änderungen wurden erfolgreich durchgeführt.&#13;&#10;&#13;&#10;Klicken Sie auf „Fertig stellen“, um den Assistenten zu beenden." />
+        <Control Id="LaunchCheckBox" Type="CheckBox" X="135" Y="190" Width="220" Height="17" CheckBoxValue="1"
+                 Property="LAUNCHAPP" Text="[ProductName] jetzt &amp;starten">
+          <Condition Action="hide">Installed OR REMOVE</Condition>
+          <Condition Action="show">NOT Installed AND NOT REMOVE</Condition>
+        </Control>
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Disabled="yes" Text="&lt; &amp;Zurück" />
+        <Control Id="Finish" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Cancel="yes" Text="&amp;Fertig stellen">
+          <Publish Event="DoAction" Value="LaunchApplication" Order="1">LAUNCHAPP = "1" AND NOT Installed AND NOT REMOVE</Publish>
+          <Publish Event="EndDialog" Value="Return" Order="2">1</Publish>
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Disabled="yes" Text="Abbrechen" />
+      </Dialog>
+
+      <!-- ============================================================ Abgebrochen -->
+      <Dialog Id="UserExitDlg" Width="370" Height="270" Title="[ProductName] – Setup">
+        <Control Id="Bitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="234" TabSkip="no" Text="AcDialog" />
+        <Control Id="Title" Type="Text" X="135" Y="20" Width="220" Height="60" Transparent="yes" NoPrefix="yes"
+                 Text="{\AcBigTitle}Die Installation wurde abgebrochen" />
+        <Control Id="Description" Type="Text" X="135" Y="86" Width="220" Height="80" Transparent="yes" NoPrefix="yes"
+                 Text="[ProductName] wurde nicht installiert, Ihr System wurde nicht verändert.&#13;&#10;&#13;&#10;Sie können das Setup später erneut ausführen. Klicken Sie auf „Fertig stellen“, um den Assistenten zu beenden." />
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Disabled="yes" Text="&lt; &amp;Zurück" />
+        <Control Id="Finish" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Cancel="yes" Text="&amp;Fertig stellen">
+          <Publish Event="EndDialog" Value="Exit">1</Publish>
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Disabled="yes" Text="Abbrechen" />
+      </Dialog>
+
+      <!-- ============================================================ Fehler -->
+      <Dialog Id="FatalErrorDlg" Width="370" Height="270" Title="[ProductName] – Setup">
+        <Control Id="Bitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="234" TabSkip="no" Text="AcDialog" />
+        <Control Id="Title" Type="Text" X="135" Y="20" Width="220" Height="60" Transparent="yes" NoPrefix="yes"
+                 Text="{\AcBigTitle}Der Installations-Assistent wurde vorzeitig beendet" />
+        <Control Id="Description" Type="Text" X="135" Y="86" Width="220" Height="80" Transparent="yes" NoPrefix="yes"
+                 Text="Aufgrund eines Fehlers wurde die Installation von [ProductName] beendet. Ihr System wurde nicht verändert.&#13;&#10;&#13;&#10;Klicken Sie auf „Fertig stellen“, um den Assistenten zu beenden." />
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Disabled="yes" Text="&lt; &amp;Zurück" />
+        <Control Id="Finish" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Cancel="yes" Text="&amp;Fertig stellen">
+          <Publish Event="EndDialog" Value="Exit">1</Publish>
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Disabled="yes" Text="Abbrechen" />
+      </Dialog>
+
+      <!-- ============================================================ Abbrechen? -->
+      <Dialog Id="CancelDlg" Width="260" Height="85" Title="[ProductName] – Setup" NoMinimize="yes">
+        <Control Id="Text" Type="Text" X="20" Y="15" Width="225" Height="30" NoPrefix="yes"
+                 Text="Möchten Sie die Installation von [ProductName] wirklich abbrechen?" />
+        <Control Id="Yes" Type="PushButton" X="72" Y="57" Width="56" Height="17" Text="&amp;Ja">
+          <Publish Event="EndDialog" Value="Exit">1</Publish>
+        </Control>
+        <Control Id="No" Type="PushButton" X="132" Y="57" Width="56" Height="17" Default="yes" Cancel="yes" Text="&amp;Nein">
+          <Publish Event="EndDialog" Value="Return">1</Publish>
+        </Control>
+      </Dialog>
+
+      <!-- ============================================================ Fehlermeldungen -->
+      <Dialog Id="ErrorDlg" Width="270" Height="105" Title="[ProductName] – Setup" ErrorDialog="yes" NoMinimize="yes">
+        <Control Id="ErrorText" Type="Text" X="20" Y="15" Width="235" Height="60" NoPrefix="yes" TabSkip="no" Text="Information" />
+        <Control Id="Y" Type="PushButton" X="100" Y="80" Width="56" Height="17" TabSkip="yes" Text="&amp;Ja">
+          <Publish Event="EndDialog" Value="ErrorYes">1</Publish>
+        </Control>
+        <Control Id="A" Type="PushButton" X="100" Y="80" Width="56" Height="17" TabSkip="yes" Text="Abbrechen">
+          <Publish Event="EndDialog" Value="ErrorAbort">1</Publish>
+        </Control>
+        <Control Id="C" Type="PushButton" X="100" Y="80" Width="56" Height="17" TabSkip="yes" Text="Abbrechen">
+          <Publish Event="EndDialog" Value="ErrorCancel">1</Publish>
+        </Control>
+        <Control Id="I" Type="PushButton" X="100" Y="80" Width="56" Height="17" TabSkip="yes" Text="&amp;Ignorieren">
+          <Publish Event="EndDialog" Value="ErrorIgnore">1</Publish>
+        </Control>
+        <Control Id="N" Type="PushButton" X="100" Y="80" Width="56" Height="17" TabSkip="yes" Text="&amp;Nein">
+          <Publish Event="EndDialog" Value="ErrorNo">1</Publish>
+        </Control>
+        <Control Id="O" Type="PushButton" X="100" Y="80" Width="56" Height="17" TabSkip="yes" Text="OK">
+          <Publish Event="EndDialog" Value="ErrorOk">1</Publish>
+        </Control>
+        <Control Id="R" Type="PushButton" X="100" Y="80" Width="56" Height="17" TabSkip="yes" Text="&amp;Wiederholen">
+          <Publish Event="EndDialog" Value="ErrorRetry">1</Publish>
+        </Control>
+      </Dialog>
+
+      <!-- ============================================================ Dateien in Verwendung -->
+      <Dialog Id="FilesInUse" Width="370" Height="270" Title="[ProductName] – Setup" KeepModeless="yes">
+        <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="AcBanner" />
+        <Control Id="Title" Type="Text" X="15" Y="7" Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="{\AcTitleWhite}Dateien in Verwendung" />
+        <Control Id="Description" Type="Text" X="25" Y="24" Width="300" Height="14" Transparent="yes" NoPrefix="yes"
+                 Text="{\AcWhite8}Einige Dateien, die aktualisiert werden müssen, sind geöffnet." />
+        <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+        <Control Id="Text" Type="Text" X="20" Y="54" Width="330" Height="30" NoPrefix="yes"
+                 Text="Die folgenden Anwendungen verwenden Dateien, die vom Setup aktualisiert werden müssen. Schließen Sie diese Anwendungen und klicken Sie auf „Wiederholen“." />
+        <Control Id="List" Type="ListBox" X="20" Y="88" Width="330" Height="135" Sunken="yes" Sorted="yes" Property="FileInUseProcess" />
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+        <Control Id="Exit" Type="PushButton" X="166" Y="243" Width="56" Height="17" Cancel="yes" Text="&amp;Beenden">
+          <Publish Event="EndDialog" Value="Exit">1</Publish>
+        </Control>
+        <Control Id="Ignore" Type="PushButton" X="235" Y="243" Width="56" Height="17" Text="&amp;Ignorieren">
+          <Publish Event="EndDialog" Value="Ignore">1</Publish>
+        </Control>
+        <Control Id="Retry" Type="PushButton" X="304" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Wiederholen">
+          <Publish Event="EndDialog" Value="Retry">1</Publish>
+        </Control>
+      </Dialog>
+
+      <!-- ============================================================ Speicherplatz -->
+      <Dialog Id="OutOfDiskDlg" Width="370" Height="270" Title="[ProductName] – Setup">
+        <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="AcBanner" />
+        <Control Id="Title" Type="Text" X="15" Y="7" Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="{\AcTitleWhite}Nicht genügend Speicherplatz" />
+        <Control Id="Description" Type="Text" X="25" Y="24" Width="300" Height="14" Transparent="yes" NoPrefix="yes"
+                 Text="{\AcWhite8}Für die Installation ist mehr Speicherplatz erforderlich." />
+        <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+        <Control Id="Text" Type="Text" X="20" Y="54" Width="330" Height="30" NoPrefix="yes"
+                 Text="Die markierten Laufwerke haben nicht genügend freien Speicherplatz. Geben Sie Speicherplatz frei oder wählen Sie einen anderen Zielordner." />
+        <Control Id="VolumeList" Type="VolumeCostList" X="20" Y="88" Width="330" Height="135" Sunken="yes" Fixed="yes" Remote="yes" Text="{120}{70}{70}{70}{70}" />
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+        <Control Id="OK" Type="PushButton" X="304" Y="243" Width="56" Height="17" Default="yes" Cancel="yes" Text="OK">
+          <Publish Event="EndDialog" Value="Return">1</Publish>
+        </Control>
+      </Dialog>
+
+      <!-- ============================================================ Texte -->
+      <ProgressText Action="InstallValidate">Installation wird überprüft</ProgressText>
+      <ProgressText Action="CostInitialize">Speicherbedarf wird berechnet</ProgressText>
+      <ProgressText Action="FileCost">Speicherbedarf wird berechnet</ProgressText>
+      <ProgressText Action="CostFinalize">Speicherbedarf wird berechnet</ProgressText>
+      <ProgressText Action="InstallFiles" Template="Datei: [1], Größe: [6]">Dateien werden kopiert</ProgressText>
+      <ProgressText Action="RemoveFiles" Template="Datei: [1]">Dateien werden entfernt</ProgressText>
+      <ProgressText Action="WriteRegistryValues" Template="Schlüssel: [1], Name: [2]">Registrierungswerte werden geschrieben</ProgressText>
+      <ProgressText Action="RemoveRegistryValues" Template="Schlüssel: [1], Name: [2]">Registrierungswerte werden entfernt</ProgressText>
+      <ProgressText Action="CreateShortcuts" Template="Verknüpfung: [1]">Verknüpfungen werden erstellt</ProgressText>
+      <ProgressText Action="RemoveShortcuts" Template="Verknüpfung: [1]">Verknüpfungen werden entfernt</ProgressText>
+      <ProgressText Action="RemoveFolders" Template="Ordner: [1]">Ordner werden entfernt</ProgressText>
+      <ProgressText Action="CreateFolders" Template="Ordner: [1]">Ordner werden erstellt</ProgressText>
+      <ProgressText Action="ProcessComponents">Komponentenregistrierung wird aktualisiert</ProgressText>
+      <ProgressText Action="PublishFeatures" Template="Feature: [1]">Produktfeatures werden veröffentlicht</ProgressText>
+      <ProgressText Action="UnpublishFeatures" Template="Feature: [1]">Veröffentlichung der Produktfeatures wird aufgehoben</ProgressText>
+      <ProgressText Action="PublishProduct">Produktinformationen werden veröffentlicht</ProgressText>
+      <ProgressText Action="RegisterProduct" Template="[1]">Produkt wird registriert</ProgressText>
+      <ProgressText Action="RegisterUser" Template="[1]">Benutzer wird registriert</ProgressText>
+      <ProgressText Action="RemoveExistingProducts" Template="Anwendung: [1]">Ältere Version wird entfernt</ProgressText>
+      <ProgressText Action="InstallFinalize">Installation wird abgeschlossen</ProgressText>
+      <ProgressText Action="GenerateScript" Template="[1]">Skriptvorgänge werden erstellt für:</ProgressText>
+      <ProgressText Action="Rollback" Template="[1]">Aktion wird rückgängig gemacht:</ProgressText>
+
+      <UIText Id="bytes">Byte</UIText>
+      <UIText Id="KB">KB</UIText>
+      <UIText Id="MB">MB</UIText>
+      <UIText Id="GB">GB</UIText>
+      <UIText Id="VolumeCostAvailable">Verfügbar</UIText>
+      <UIText Id="VolumeCostDifference">Differenz</UIText>
+      <UIText Id="VolumeCostRequired">Benötigt</UIText>
+      <UIText Id="VolumeCostSize">Datenträgergröße</UIText>
+      <UIText Id="VolumeCostVolume">Laufwerk</UIText>
+      <UIText Id="AbsentPath" />
+      <UIText Id="NewFolder">Ordner|Neuer Ordner</UIText>
+
+      <!-- ============================================================ Ablauf -->
+      <InstallUISequence>
+        <Show Dialog="FatalErrorDlg" OnExit="error" />
+        <Show Dialog="UserExitDlg" OnExit="cancel" />
+        <Show Dialog="ExitDlg" OnExit="success" />
+        <Show Dialog="ProgressDlg" Before="ExecuteAction" />
+        <Show Dialog="WelcomeDlg" Before="ProgressDlg">NOT Installed</Show>
+        <Show Dialog="MaintenanceDlg" Before="WelcomeDlg">Installed AND NOT RESUME AND NOT Preselected</Show>
+      </InstallUISequence>
+      <AdminUISequence>
+        <Show Dialog="FatalErrorDlg" OnExit="error" />
+        <Show Dialog="UserExitDlg" OnExit="cancel" />
+        <Show Dialog="ExitDlg" OnExit="success" />
+      </AdminUISequence>
+    </UI>
+  </Fragment>
+</Wix>

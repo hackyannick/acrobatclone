@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  AcroClone 9 Pro – Windows-Installer (WiX Toolset 3.x)
+
+  Erstellen unter Windows:  AcroClone.Setup.wixproj in Visual Studio (WiX Toolset 3.11 + Votive)
+  Variablen (über das Projekt bzw. -d gesetzt):
+    Platform    x86 oder x64
+    SourceDir   Ausgabeordner von AcroClone.csproj (enthält AcroClone.exe, x86\, x64\)
+    LicenseDir  Ordner mit den Lizenztexten (lib\pdfium\licenses)
+    IconFile    Programmsymbol (src\AcroClone\app.ico)
+    NoUI        nur gesetzt, wenn die Dialoge nachträglich importiert werden (Linux-Build mit wixl)
+-->
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+
+  <?ifndef Platform?>
+  <?define Platform = "x64" ?>
+  <?endif?>
+  <?ifndef SourceDir?>
+  <?define SourceDir = "..\src\AcroClone\bin\Release" ?>
+  <?endif?>
+  <?ifndef IconFile?>
+  <?define IconFile = "..\src\AcroClone\app.ico" ?>
+  <?endif?>
+  <?ifndef LicenseDir?>
+  <?define LicenseDir = "..\lib\pdfium\licenses" ?>
+  <?endif?>
+
+  <?if $(var.Platform) = "x64" ?>
+  <?define Win64 = "yes" ?>
+  <?define ProgramFilesDir = "ProgramFiles64Folder" ?>
+  <?else?>
+  <?define Win64 = "no" ?>
+  <?define ProgramFilesDir = "ProgramFilesFolder" ?>
+  <?endif?>
+
+  <?define ProductVersion = "9.0.0" ?>
+  <?define UpgradeCode = "{4D523374-B9CB-4706-BD3E-A6B10D40E719}" ?>
+
+  <Product Id="*"
+           Name="AcroClone 9 Pro"
+           Language="1031"
+           Codepage="1252"
+           Version="$(var.ProductVersion)"
+           Manufacturer="AcroClone"
+           UpgradeCode="$(var.UpgradeCode)">
+
+    <Package InstallerVersion="500"
+             Compressed="yes"
+             InstallScope="perMachine"
+             Languages="1031"
+             SummaryCodepage="1252"
+             Description="AcroClone 9 Pro"
+             Comments="PDF-Programm im Stil von Acrobat 9 (kein Adobe-Produkt)" />
+
+    <MajorUpgrade AllowSameVersionUpgrades="yes"
+                  DowngradeErrorMessage="Eine neuere Version von [ProductName] ist bereits installiert. Das Setup wird beendet." />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <!-- Voraussetzungen -->
+    <Property Id="NETFX4INSTALLED">
+      <RegistrySearch Id="NetFx4Search" Root="HKLM" Key="SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" Name="Install" Type="raw" />
+    </Property>
+    <Condition Message="[ProductName] benötigt Windows 10 oder neuer.">Installed OR VersionNT &gt;= 603</Condition>
+    <Condition Message="[ProductName] benötigt das Microsoft .NET Framework 4 oder neuer.">Installed OR NETFX4INSTALLED</Condition>
+
+    <!-- Darstellung in "Programme und Features" -->
+    <Icon Id="AcroClone.ico" SourceFile="$(var.IconFile)" />
+    <Property Id="ARPPRODUCTICON" Value="AcroClone.ico" />
+    <Property Id="ARPCOMMENTS" Value="PDF-Programm im Stil von Acrobat 9" />
+
+    <!-- Eigenschaften für die Setup-Dialoge -->
+    <Property Id="DefaultUIFont" Value="AcTahoma8" />
+    <Property Id="ErrorDialog" Value="ErrorDlg" />
+    <Property Id="INSTALLDESKTOPSHORTCUT" Value="1" />
+    <Property Id="REGISTERPDF" Value="1" />
+    <Property Id="LAUNCHAPP" Value="1" />
+
+    <!-- Verzeichnisse -->
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="$(var.ProgramFilesDir)">
+        <Directory Id="INSTALLDIR" Name="AcroClone 9 Pro">
+          <Directory Id="X86DIR" Name="x86" />
+          <Directory Id="X64DIR" Name="x64" />
+          <Directory Id="LICENSEDIR" Name="Lizenzen" />
+        </Directory>
+      </Directory>
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ProgramMenuDir" Name="AcroClone 9 Pro" />
+      </Directory>
+      <Directory Id="DesktopFolder" Name="Desktop" />
+    </Directory>
+
+    <!-- Programmdateien -->
+    <DirectoryRef Id="INSTALLDIR">
+      <Component Id="MainExecutable" Guid="{3913266F-E9C0-447D-9531-ED6D2F85CA2D}" Win64="$(var.Win64)">
+        <File Id="AcroCloneExe" Name="AcroClone.exe" Source="$(var.SourceDir)\AcroClone.exe" KeyPath="yes" />
+        <File Id="AcroCloneConfig" Name="AcroClone.exe.config" Source="$(var.SourceDir)\AcroClone.exe.config" />
+        <RegistryValue Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\AcroClone.exe" Type="string" Value="[INSTALLDIR]AcroClone.exe" />
+        <RegistryValue Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\AcroClone.exe" Name="Path" Type="string" Value="[INSTALLDIR]" />
+      </Component>
+      <Component Id="PdfAssociation" Guid="{434346D3-CA6F-4261-852A-89436D255CD8}" Win64="$(var.Win64)">
+        <Condition>REGISTERPDF</Condition>
+        <RegistryValue Root="HKLM" Key="SOFTWARE\Classes\AcroClone.Document" Type="string" Value="PDF-Dokument (AcroClone)" KeyPath="yes" />
+        <RegistryValue Root="HKLM" Key="SOFTWARE\Classes\AcroClone.Document\DefaultIcon" Type="string" Value="[INSTALLDIR]AcroClone.exe,0" />
+        <RegistryValue Root="HKLM" Key="SOFTWARE\Classes\AcroClone.Document\shell\open" Type="string" Value="Mit AcroClone öffnen" />
+        <RegistryValue Root="HKLM" Key="SOFTWARE\Classes\AcroClone.Document\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]AcroClone.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="SOFTWARE\Classes\.pdf\OpenWithProgids" Name="AcroClone.Document" Type="string" Value="AcroClone" />
+        <RegistryValue Root="HKLM" Key="SOFTWARE\Classes\Applications\AcroClone.exe" Name="FriendlyAppName" Type="string" Value="AcroClone 9 Pro" />
+        <RegistryValue Root="HKLM" Key="SOFTWARE\Classes\Applications\AcroClone.exe\SupportedTypes" Name=".pdf" Type="string" Value="AcroClone" />
+        <RegistryValue Root="HKLM" Key="SOFTWARE\Classes\Applications\AcroClone.exe\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]AcroClone.exe&quot; &quot;%1&quot;" />
+      </Component>
+    </DirectoryRef>
+    <DirectoryRef Id="X86DIR">
+      <Component Id="PdfiumX86" Guid="{8AAD846C-1EA9-4059-B937-94004A6FEA26}" Win64="$(var.Win64)">
+        <File Id="PdfiumX86Dll" Name="pdfium.dll" Source="$(var.SourceDir)\x86\pdfium.dll" KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
+    <DirectoryRef Id="X64DIR">
+      <Component Id="PdfiumX64" Guid="{65C1425B-2A64-43D8-A3F7-26FDEB7707A8}" Win64="$(var.Win64)">
+        <File Id="PdfiumX64Dll" Name="pdfium.dll" Source="$(var.SourceDir)\x64\pdfium.dll" KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
+    <DirectoryRef Id="LICENSEDIR">
+      <Component Id="Licenses" Guid="{3A14F39D-D5DA-4549-83D0-D7D4E8A15302}" Win64="$(var.Win64)">
+          <File Id="Lic_Apache_2_0_txt" Source="$(var.LicenseDir)\Apache-2.0.txt" KeyPath="yes" />
+          <File Id="Lic_BSD_3_Clause_txt" Source="$(var.LicenseDir)\BSD-3-Clause.txt" />
+          <File Id="Lic_abseil_txt" Source="$(var.LicenseDir)\abseil.txt" />
+          <File Id="Lic_agg23_txt" Source="$(var.LicenseDir)\agg23.txt" />
+          <File Id="Lic_fast_float_txt" Source="$(var.LicenseDir)\fast_float.txt" />
+          <File Id="Lic_freetype_txt" Source="$(var.LicenseDir)\freetype.txt" />
+          <File Id="Lic_icu_txt" Source="$(var.LicenseDir)\icu.txt" />
+          <File Id="Lic_lcms_txt" Source="$(var.LicenseDir)\lcms.txt" />
+          <File Id="Lic_libjpeg_turbo_ijg" Source="$(var.LicenseDir)\libjpeg_turbo.ijg" />
+          <File Id="Lic_libjpeg_turbo_md" Source="$(var.LicenseDir)\libjpeg_turbo.md" />
+          <File Id="Lic_libopenjpeg_txt" Source="$(var.LicenseDir)\libopenjpeg.txt" />
+          <File Id="Lic_libpng_txt" Source="$(var.LicenseDir)\libpng.txt" />
+          <File Id="Lic_llvm_libc_txt" Source="$(var.LicenseDir)\llvm-libc.txt" />
+          <File Id="Lic_pdfium_binaries_txt" Source="$(var.LicenseDir)\pdfium-binaries.txt" />
+          <File Id="Lic_pdfium_txt" Source="$(var.LicenseDir)\pdfium.txt" />
+          <File Id="Lic_simdutf_txt" Source="$(var.LicenseDir)\simdutf.txt" />
+          <File Id="Lic_zlib_txt" Source="$(var.LicenseDir)\zlib.txt" />
+      </Component>
+    </DirectoryRef>
+
+    <!-- Verknüpfungen -->
+    <DirectoryRef Id="ProgramMenuDir">
+      <Component Id="StartMenuShortcut" Guid="{29CAA76D-B3E0-4380-A623-B8B3E40AA24E}">
+        <Shortcut Id="StartMenuAcroClone" Name="AcroClone 9 Pro" Description="PDF-Dokumente anzeigen und bearbeiten"
+                  Target="[INSTALLDIR]AcroClone.exe" WorkingDirectory="INSTALLDIR" Icon="AcroClone.ico" />
+        <RemoveFolder Id="RemoveProgramMenuDir" On="uninstall" />
+        <RegistryValue Root="HKCU" Key="Software\AcroClone\Installer" Name="StartMenuShortcut" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
+    <DirectoryRef Id="DesktopFolder">
+      <Component Id="DesktopShortcut" Guid="{FF6F7CCF-80BE-466D-A981-B9FC77DBFB81}">
+        <Condition>INSTALLDESKTOPSHORTCUT</Condition>
+        <Shortcut Id="DesktopAcroClone" Name="AcroClone 9 Pro" Description="PDF-Dokumente anzeigen und bearbeiten"
+                  Target="[INSTALLDIR]AcroClone.exe" WorkingDirectory="INSTALLDIR" Icon="AcroClone.ico" />
+        <RegistryValue Root="HKCU" Key="Software\AcroClone\Installer" Name="DesktopShortcut" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
+
+    <Feature Id="Complete" Title="AcroClone 9 Pro" Description="Das vollständige Programm." Level="1" ConfigurableDirectory="INSTALLDIR">
+      <ComponentRef Id="MainExecutable" />
+      <ComponentRef Id="PdfAssociation" />
+      <ComponentRef Id="PdfiumX86" />
+      <ComponentRef Id="PdfiumX64" />
+      <ComponentRef Id="Licenses" />
+      <ComponentRef Id="StartMenuShortcut" />
+      <ComponentRef Id="DesktopShortcut" />
+    </Feature>
+
+    <!-- Programm nach der Installation starten (Kontrollkästchen im letzten Dialog) -->
+    <CustomAction Id="LaunchApplication" Directory="INSTALLDIR" ExeCommand="&quot;[INSTALLDIR]AcroClone.exe&quot;" Return="asyncNoWait" Impersonate="yes" />
+
+    <?ifndef NoUI?>
+    <UIRef Id="AcroCloneUI" />
+    <?endif?>
+  </Product>
+</Wix>

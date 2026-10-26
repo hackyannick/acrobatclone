@@ -72,10 +72,38 @@ msbuild AcroClone.sln /p:Configuration=Release
 Die fertige Anwendung liegt dann in `src\AcroClone\bin\Release\`. Zum Weitergeben genügen
 `AcroClone.exe`, `AcroClone.exe.config` und die Ordner `x86` und `x64`.
 
-## Fertige EXE
+## Fertige Version
 
-Unter [`dist/AcroClone-9.0.0-Windows.zip`](dist/AcroClone-9.0.0-Windows.zip) liegt eine fertig
-kompilierte Version: entpacken und `AcroClone.exe` starten.
+| Datei | Inhalt |
+|---|---|
+| [`dist/AcroClone-9.0.0-x64.msi`](dist/AcroClone-9.0.0-x64.msi) | **Windows-Installer** (64 Bit): Doppelklick startet den Setup-Assistenten |
+| [`dist/AcroClone-9.0.0-Windows.zip`](dist/AcroClone-9.0.0-Windows.zip) | Portable Version: entpacken und `AcroClone.exe` starten |
+
+## Installer (MSI)
+
+![Setup-Assistent](docs/screenshots/05-setup-assistent.png)
+
+Der Installer hat einen eigenen Setup-Assistenten im Stil des Acrobat-9-Setups
+(Willkommen → Lizenz → Zielordner und Optionen → Bereit → Fortschritt → Fertig) und bietet:
+
+- Installation nach `C:\Program Files\AcroClone 9 Pro` (Ordner änderbar)
+- Verknüpfung im Startmenü, optional auf dem Desktop
+- optional Eintrag „Öffnen mit → AcroClone 9 Pro“ für PDF-Dateien (ohne den Standard-PDF-Viewer zu ändern)
+- „AcroClone 9 Pro jetzt starten“ am Ende der Installation
+- Reparieren und Entfernen beim erneuten Start des MSI bzw. Deinstallation über „Apps & Features“
+- automatisches Ersetzen älterer Versionen (Major Upgrade), Prüfung auf Windows 10+ und .NET Framework 4
+- Stille Installation: `msiexec /i AcroClone-9.0.0-x64.msi /qn` (Optionen z. B. `INSTALLDESKTOPSHORTCUT=""`, `REGISTERPDF=""`)
+
+**Installer selbst bauen (Windows):**
+
+1. [WiX Toolset 3.11](https://wixtoolset.org/docs/wix3/) mit Visual-Studio-Erweiterung installieren.
+2. `AcroClone.Setup.sln` öffnen (enthält Programm und Installer), Konfiguration **Release** und
+   Plattform **x64** oder **x86** wählen, **Erstellen**.
+3. Das MSI liegt in `installer\bin\<Plattform>\Release\AcroClone-9.0.0-<Plattform>.msi`.
+
+Die Quellen liegen in `installer/`: `Product.wxs` (Dateien, Verknüpfungen, Registrierung),
+`UI.wxs` (alle Dialoge), `License.rtf`, `Banner.bmp`, `Dialog.bmp`. Die mitgelieferte MSI-Datei wurde
+ohne Windows mit [msitools](https://wiki.gnome.org/msitools) erzeugt (`installer/tools/build_msi_linux.py`).
 
 ## Tastenkombinationen (Auswahl)
 
@@ -98,6 +126,7 @@ kompilierte Version: entpacken und `AcroClone.exe` starten.
 
 ```
 AcroClone.sln                      Projektmappe (Visual Studio 2010, Format 11.00)
+AcroClone.Setup.sln                Projektmappe mit Programm und Installer (benötigt WiX Toolset 3)
 src/AcroClone/
   AcroClone.csproj                 C#-Projekt (.NET Framework 4.0, WinExe, AnyCPU)
   Program.cs                       Einstiegspunkt, Fensterverwaltung (ein Fenster pro Dokument)
@@ -109,7 +138,9 @@ src/AcroClone/
   UI/                              Hauptfenster, Dokumentansicht, Navigations-/Kommentar-/Suchbereich,
                                    Theme im Acrobat-9-Stil, gezeichnete Symbole
   UI/Dialogs/                      Dialoge (Seiten, Wasserzeichen, Eigenschaften, Unterschrift …)
+installer/                         WiX-Installer (Product.wxs, UI.wxs, Grafiken, Lizenztext)
 lib/pdfium/                        PDFium (x86/x64) und Lizenzen
+dist/                              Fertiges MSI und portable ZIP-Version
 docs/screenshots/                  Bildschirmfotos
 ```
 
